@@ -1,4 +1,11 @@
 {
+  "buildCommand": "npm install && npx vite build",
+  "outputDirectory": "dist",
+  "functions": {
+    "api/index.py": {
+      "includeFiles": "api/**"
+    }
+  },
   "rewrites": [
     {
       "source": "/applications(.*)",
