@@ -12,10 +12,9 @@ from sqlalchemy.orm import declarative_base
 
 from app.core.config import settings
 
-# Configure connection args with statement_cache_size=0 for Supabase PgBouncer compatibility
+# Configure connection args with statement_cache_size=0 for Supabase compatibility
 connect_args = {
-    "statement_cache_size": 0,
-    "prepared_statement_cache_size": 0,
+    "statement_cache_size": 0
 }
 
 if "supabase" in settings.POSTGRES_SERVER or "aws" in settings.POSTGRES_SERVER or "pooler" in settings.POSTGRES_SERVER:
