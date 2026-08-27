@@ -1,5 +1,5 @@
 """
-FastAPI Application Entry Point & Lifespan Hooks
+FastAPI Application Entry Point
 
 [PRESENTATION-TAG: FASTAPI-FRAMEWORK]
 [PRESENTATION-TAG: SLOWAPI-RATE-LIMITING]
@@ -7,7 +7,6 @@ FastAPI Application Entry Point & Lifespan Hooks
 """
 
 import time
-from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
@@ -16,36 +15,18 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
 from app.core.config import settings
-from app.core.database import engine, Base
 from app.core.security import limiter, SecurityHeadersMiddleware, IdempotencyMiddleware
 from app.routers import applications
 
 # Service boot timestamp for uptime observability
 START_TIME = time.time()
 
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """
-    [PRESENTATION-TAG: SQLALCHEMY-ASYNCPG]
-    Application Lifespan Event Handler.
-    Executes database schema migration table creation on startup.
-    """
-    try:
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-    except Exception as e:
-        print("Database schema migration notice:", e)
-    yield
-
-
 # [PRESENTATION-TAG: FASTAPI-FRAMEWORK] Instantiate FastAPI Core Application
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
     docs_url="/docs",
-    redoc_url="/redoc",
-    lifespan=lifespan
+    redoc_url="/redoc"
 )
 
 # [PRESENTATION-TAG: SLOWAPI-RATE-LIMITING] Bind SlowAPI Limiter State

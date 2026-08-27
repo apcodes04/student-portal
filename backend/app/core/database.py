@@ -9,6 +9,7 @@ import ssl
 from typing import AsyncGenerator
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import declarative_base
+from sqlalchemy.pool import NullPool
 
 from app.core.config import settings
 
@@ -23,13 +24,11 @@ if "supabase" in settings.POSTGRES_SERVER or "aws" in settings.POSTGRES_SERVER o
     ctx.verify_mode = ssl.CERT_NONE
     connect_args["ssl"] = ctx
 
-# Instantiate Async Engine
+# Instantiate Async Engine with NullPool for Vercel Serverless compatibility
 engine = create_async_engine(
     settings.async_database_url,
     echo=settings.DEBUG,
-    pool_size=settings.DB_POOL_SIZE,
-    max_overflow=settings.DB_MAX_OVERFLOW,
-    pool_timeout=settings.DB_POOL_TIMEOUT,
+    poolclass=NullPool,
     connect_args=connect_args
 )
 
