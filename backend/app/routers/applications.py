@@ -1,5 +1,5 @@
 """
-Application Router Endpoints with Full CRUD & Status Operations
+Application Router Endpoints with Full CRUD & Dual Path Matching
 
 [PRESENTATION-TAG: FASTAPI-FRAMEWORK]
 [PRESENTATION-TAG: ANTI-CSRF-PROTECTION]
@@ -27,10 +27,7 @@ router = APIRouter(prefix="/applications", tags=["Applications"])
 
 @router.get("/csrf-token", summary="Retrieve Anti-CSRF Cookie and Token")
 def get_csrf_token(response: Response):
-    """
-    [PRESENTATION-TAG: ANTI-CSRF-PROTECTION]
-    Generates a secure cryptographically random CSRF token and sets double-submit cookie.
-    """
+    """Generates secure Anti-CSRF double-submit token."""
     csrf_token = secrets.token_hex(32)
     response.set_cookie(
         key="csrf_token",
@@ -50,14 +47,18 @@ def get_csrf_token(response: Response):
     dependencies=[Depends(verify_csrf_token)],
     summary="Create New Application"
 )
+@router.post(
+    "/",
+    response_model=ApplicationResponse,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(verify_csrf_token)],
+    summary="Create New Application Slash"
+)
 async def create_application(
     payload: ApplicationCreate,
     db: AsyncSession = Depends(get_db)
 ):
-    """
-    [PRESENTATION-TAG: SQLALCHEMY-ASYNCPG]
-    Persists new application record to Supabase PostgreSQL database.
-    """
+    """Persists new application record to Supabase PostgreSQL database."""
     new_app = Application(
         full_name=payload.full_name,
         email=payload.email,
@@ -71,27 +72,33 @@ async def create_application(
     return new_app
 
 
-@router.get("", response_model=List[ApplicationResponse], summary="List All Applications")
+@router.get("", summary="List All Applications")
+@router.get("/", summary="List All Applications Slash")
 async def list_applications(db: AsyncSession = Depends(get_db)):
-    """
-    [PRESENTATION-TAG: SQLALCHEMY-ASYNCPG]
-    Retrieves all application records ordered by creation timestamp descending.
-    """
-    result = await db.execute(select(Application).order_by(Application.created_at.desc()))
-    return result.scalars().all()
+    """Retrieves all application records ordered by creation timestamp descending."""
+    try:
+        result = await db.execute(select(Application).order_by(Application.created_at.desc()))
+        records = result.scalars().all()
+        return [r.to_dict() for r in records]
+    except Exception as e:
+        print("Database query exception:", str(e))
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database Connection Error: {str(e)}"
+        )
 
 
-@router.get("/{application_id}", response_model=ApplicationResponse, summary="Get Application Details")
+@router.get("/{application_id}", summary="Get Application Details")
 async def get_application(application_id: str, db: AsyncSession = Depends(get_db)):
     """Retrieves single application record by UUID."""
     result = await db.execute(select(Application).where(Application.id == application_id))
     app_record = result.scalar_one_or_none()
     if not app_record:
         raise HTTPException(status_code=404, detail="Application record not found")
-    return app_record
+    return app_record.to_dict()
 
 
-@router.put("/{application_id}", response_model=ApplicationResponse, summary="Update Application Record")
+@router.put("/{application_id}", summary="Update Application Record")
 async def update_application(
     application_id: str,
     payload: ApplicationUpdate,
@@ -116,10 +123,10 @@ async def update_application(
 
     await db.commit()
     await db.refresh(app_record)
-    return app_record
+    return app_record.to_dict()
 
 
-@router.patch("/{application_id}/status", response_model=ApplicationResponse, summary="Update Status")
+@router.patch("/{application_id}/status", summary="Update Status")
 async def update_application_status(
     application_id: str,
     payload: ApplicationStatusUpdate,
@@ -134,7 +141,7 @@ async def update_application_status(
     app_record.status = payload.status
     await db.commit()
     await db.refresh(app_record)
-    return app_record
+    return app_record.to_dict()
 
 
 @router.delete("/{application_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Delete Application Record")
