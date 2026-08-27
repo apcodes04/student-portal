@@ -1,12 +1,13 @@
 """
-Vercel Serverless Function Entry Point
-Imports the main FastAPI application for Vercel deployment.
+Vercel Serverless Function Entry Point for FastAPI Application
 """
 
 import sys
 import os
 
-# Add backend directory to python path
-sys.path.append(os.path.join(os.path.dirname(__file__), "..", "backend"))
+# Ensure api directory is on Python search path
+current_dir = os.path.dirname(os.path.abspath(__file__))
+if current_dir not in sys.path:
+    sys.path.insert(0, current_dir)
 
 from app.main import app
