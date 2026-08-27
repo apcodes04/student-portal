@@ -8,12 +8,15 @@
 
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+// Use relative URL when deployed on Vercel or environment override
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL !== undefined 
+  ? import.meta.env.VITE_API_BASE_URL 
+  : (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:8000' : '');
 
 // [PRESENTATION-TAG: AXIOS-CLIENT] Axios HTTP Client Instance
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  withCredentials: true, // Forward HttpOnly CSRF cookies
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
