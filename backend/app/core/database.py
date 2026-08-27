@@ -12,13 +12,17 @@ from sqlalchemy.orm import declarative_base
 
 from app.core.config import settings
 
-# Configure SSL context for Supabase Cloud PostgreSQL connection
-connect_args = {}
+# Configure connection args with statement_cache_size=0 for Supabase PgBouncer compatibility
+connect_args = {
+    "statement_cache_size": 0,
+    "prepared_statement_cache_size": 0,
+}
+
 if "supabase" in settings.POSTGRES_SERVER or "aws" in settings.POSTGRES_SERVER or "pooler" in settings.POSTGRES_SERVER:
     ctx = ssl.create_default_context()
     ctx.check_hostname = False
     ctx.verify_mode = ssl.CERT_NONE
-    connect_args = {"ssl": ctx}
+    connect_args["ssl"] = ctx
 
 # Instantiate Async Engine
 engine = create_async_engine(
