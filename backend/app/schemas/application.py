@@ -1,69 +1,56 @@
 """
-Data Validation Layer (Pydantic V2 Payload Schemas)
+Pydantic Schema Gatekeepers (Data Validation & Contracts)
 
 [PRESENTATION-TAG: PYDANTIC-GATEKEEPER]
-Strict field validation schemas enforcing name regex, email syntax, program enum, and GPA range.
+[PRESENTATION-TAG: INPUT-SANITIZATION]
 """
 
-import re
 from datetime import datetime
-from typing import List, Optional
-from pydantic import BaseModel, EmailStr, Field, field_validator, ConfigDict
+from typing import Optional
+from pydantic import BaseModel, EmailStr, Field, field_validator
+import html
 
 
 class ApplicationBase(BaseModel):
-    """
-    [PRESENTATION-TAG: PYDANTIC-GATEKEEPER]
-    Base candidate payload validator checking required fields and range constraints.
-    """
-    full_name: str = Field(..., min_length=2, max_length=100, description="Full legal name of the applicant")
-    email: EmailStr = Field(..., max_length=255, description="Valid email address")
-    program: str = Field(..., min_length=2, max_length=100, description="Degree program code")
-    gpa: float = Field(..., ge=0.0, le=10.0, description="GPA on a 0.0 to 10.0 scale")
+    """Base Application Schema Attributes."""
+    full_name: str = Field(..., min_length=2, max_length=100)
+    email: EmailStr
+    program: str = Field(..., pattern="^(CS|AI|IT|DATA_SCIENCE|EXTC)$")
+    gpa: float = Field(..., ge=0.0, le=10.0)
 
     @field_validator("full_name")
-    @classmethod
-    def validate_full_name(cls, v: str) -> str:
-        """[PRESENTATION-TAG: PYDANTIC-GATEKEEPER] Validates name contains only alphabetic characters and spaces."""
-        stripped = v.strip()
-        if not re.match(r"^[a-zA-Z\s.'-]+$", stripped):
-            raise ValueError("Name can only contain alphabetic letters, spaces, dots, hyphens, and apostrophes.")
-        return stripped
-
-    @field_validator("program")
-    @classmethod
-    def validate_program(cls, v: str) -> str:
-        """[PRESENTATION-TAG: PYDANTIC-GATEKEEPER] Validates program code against allowed enum whitelist."""
-        normalized = v.strip().upper()
-        allowed_programs = {"AI", "CS", "IT", "DATA_SCIENCE", "EXTC"}
-        if normalized not in allowed_programs:
-            raise ValueError(f"Program must be one of: {', '.join(sorted(allowed_programs))}")
-        return normalized
+    def sanitize_name(cls, v: str) -> str:
+        """Sanitizes full_name string against XSS injection."""
+        v = v.strip()
+        if len(v) < 2:
+            raise ValueError("Full name must be at least 2 characters long")
+        return html.escape(v)
 
 
 class ApplicationCreate(ApplicationBase):
-    """Schema for candidate creation requests."""
+    """Schema for creating a new admission application."""
     pass
 
 
 class ApplicationUpdate(BaseModel):
-    """Schema for updating existing student records."""
+    """Schema for updating an existing admission application."""
     full_name: Optional[str] = Field(None, min_length=2, max_length=100)
-    email: Optional[EmailStr] = Field(None, max_length=255)
-    program: Optional[str] = Field(None, min_length=2, max_length=100)
+    email: Optional[EmailStr] = None
+    program: Optional[str] = Field(None, pattern="^(CS|AI|IT|DATA_SCIENCE|EXTC)$")
     gpa: Optional[float] = Field(None, ge=0.0, le=10.0)
+    status: Optional[str] = Field(None, pattern="^(PENDING|VERIFIED|ACCEPTED|REJECTED)$")
 
 
 class ApplicationStatusUpdate(BaseModel):
-    """Schema for status state machine transitions."""
-    status: str = Field(..., pattern="^(SUBMITTED|UNDER_REVIEW|ACCEPTED|REJECTED)$")
+    """Schema for updating application status."""
+    status: str = Field(..., pattern="^(PENDING|VERIFIED|ACCEPTED|REJECTED)$")
 
 
 class ApplicationResponse(ApplicationBase):
-    """Schema for outbound JSON responses."""
+    """Schema for application response representation."""
     id: str
-    status: str
-    is_deleted: bool
+    status: str = "PENDING"
     created_at: datetime
-    updated_at: datetime
-    model_config = ConfigDict(from_attributes=True)
+
+    class Config:
+        from_attributes = True
