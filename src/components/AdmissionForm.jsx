@@ -29,16 +29,31 @@ export function AdmissionForm({ onApplicationCreated }) {
   // [PRESENTATION-TAG: CLIENT-VALIDATION] Validate input values instantly on client
   const validateField = (name, value) => {
     let errorMsg = '';
+    const trimmedVal = typeof value === 'string' ? value.trim() : '';
+
     if (name === 'full_name') {
-      if (!value.trim()) errorMsg = 'Full name is required';
-      else if (!/^[a-zA-Z\s.'-]+$/.test(value)) errorMsg = 'Name can only contain letters and spaces';
+      if (!trimmedVal) {
+        errorMsg = 'Full name is required';
+      } else if (trimmedVal.length < 2) {
+        errorMsg = 'Full name must be at least 2 characters';
+      } else if (!/^[a-zA-Z\s.'-]+$/.test(trimmedVal)) {
+        errorMsg = 'Name can only contain alphabetic letters and spaces';
+      }
     } else if (name === 'email') {
-      if (!value.trim()) errorMsg = 'Email is required';
-      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) errorMsg = 'Enter a valid email address';
+      if (!trimmedVal) {
+        errorMsg = 'Email is required';
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedVal)) {
+        errorMsg = 'Enter a valid email address';
+      }
     } else if (name === 'gpa') {
       const num = parseFloat(value);
-      if (value === '' || isNaN(num)) errorMsg = 'GPA is required';
-      else if (num < 0.0 || num > 10.0) errorMsg = 'GPA must be between 0.0 and 10.0';
+      if (value === '' || value === null || value === undefined) {
+        errorMsg = 'GPA is required';
+      } else if (isNaN(num)) {
+        errorMsg = 'GPA is required';
+      } else if (num < 0.0 || num > 10.0) {
+        errorMsg = 'GPA must be between 0.0 and 10.0';
+      }
     }
     return errorMsg;
   };
@@ -110,43 +125,51 @@ export function AdmissionForm({ onApplicationCreated }) {
 
   return (
     <div className="card shadow-sm mb-4">
-      <div className="card-header bg-primary text-white">
-        <h5 className="mb-0">New Student Admission Form</h5>
+      <div className="card-header bg-light">
+        <h5 className="mb-0 text-black fw-bold" style={{ color: '#000000', fontWeight: '800' }}>
+          New Student Admission Form
+        </h5>
       </div>
       <div className="card-body">
         {successMessage && <div className="alert alert-success">{successMessage}</div>}
-        {serverError && <div className="alert alert-danger">{serverError}</div>}
+        {serverError && <div className="alert alert-danger fw-bold">{serverError}</div>}
 
         <form onSubmit={handleSubmit} noValidate>
           <div className="mb-3">
-            <label className="form-label">Full Name</label>
+            <label className="form-label text-dark fw-semibold">Full Name *</label>
             <input
               type="text"
               name="full_name"
-              className={`form-control ${errors.full_name ? 'is-invalid' : ''}`}
+              className={`form-control ${errors.full_name ? 'is-invalid border-danger' : ''}`}
               value={formData.full_name}
               onChange={handleChange}
-              placeholder="e.g., John Doe"
             />
-            {errors.full_name && <div className="invalid-feedback">{errors.full_name}</div>}
+            {errors.full_name && (
+              <div className="invalid-feedback d-block text-danger fw-bold mt-1" style={{ color: '#dc3545', fontWeight: '700' }}>
+                ⚠️ {errors.full_name}
+              </div>
+            )}
           </div>
 
           <div className="mb-3">
-            <label className="form-label">Email Address</label>
+            <label className="form-label text-dark fw-semibold">Email Address *</label>
             <input
               type="email"
               name="email"
-              className={`form-control ${errors.email ? 'is-invalid' : ''}`}
+              className={`form-control ${errors.email ? 'is-invalid border-danger' : ''}`}
               value={formData.email}
               onChange={handleChange}
-              placeholder="e.g., john.doe@example.com"
             />
-            {errors.email && <div className="invalid-feedback">{errors.email}</div>}
+            {errors.email && (
+              <div className="invalid-feedback d-block text-danger fw-bold mt-1" style={{ color: '#dc3545', fontWeight: '700' }}>
+                ⚠️ {errors.email}
+              </div>
+            )}
           </div>
 
           <div className="row mb-3">
             <div className="col-md-6">
-              <label className="form-label">Degree Program</label>
+              <label className="form-label text-dark fw-semibold">Degree Program *</label>
               <select
                 name="program"
                 className="form-select"
@@ -162,21 +185,24 @@ export function AdmissionForm({ onApplicationCreated }) {
             </div>
 
             <div className="col-md-6">
-              <label className="form-label">GPA (0.0 to 10.0)</label>
+              <label className="form-label text-dark fw-semibold">GPA (0.0 to 10.0) *</label>
               <input
                 type="number"
                 step="0.1"
                 name="gpa"
-                className={`form-control ${errors.gpa ? 'is-invalid' : ''}`}
+                className={`form-control ${errors.gpa ? 'is-invalid border-danger' : ''}`}
                 value={formData.gpa}
                 onChange={handleChange}
-                placeholder="e.g., 8.5"
               />
-              {errors.gpa && <div className="invalid-feedback">{errors.gpa}</div>}
+              {errors.gpa && (
+                <div className="invalid-feedback d-block text-danger fw-bold mt-1" style={{ color: '#dc3545', fontWeight: '700' }}>
+                  ⚠️ {errors.gpa}
+                </div>
+              )}
             </div>
           </div>
 
-          <button type="submit" className="btn btn-success w-100" disabled={isLoading}>
+          <button type="submit" className="btn btn-success w-100 fw-bold" disabled={isLoading}>
             {isLoading ? 'Submitting Application...' : 'Submit Application'}
           </button>
         </form>
