@@ -27,11 +27,11 @@ class Settings(BaseSettings):
     # Single Database URL override for Vercel/Supabase
     DATABASE_URL: Optional[str] = None
 
-    # PostgreSQL Connection Parameters (Supabase Cloud)
-    POSTGRES_USER: str = "postgres.kljmfwzinfdyemuvglvw"
+    # PostgreSQL Connection Parameters (Supabase Direct DB Host)
+    POSTGRES_USER: str = "postgres"
     POSTGRES_PASSWORD: str = "SuperSecretPass123!"
-    POSTGRES_SERVER: str = "aws-0-ap-south-1.pooler.supabase.com"
-    POSTGRES_PORT: int = 6543
+    POSTGRES_SERVER: str = "db.kljmfwzinfdyemuvglvw.supabase.co"
+    POSTGRES_PORT: int = 5432
     POSTGRES_DB: str = "postgres"
 
     # Connection Pool Tuning
