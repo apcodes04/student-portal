@@ -35,9 +35,14 @@ export function App() {
       setLoading(true);
       setError(null);
       const response = await apiClient.get('/applications');
-      setApplications(response.data);
+      if (Array.isArray(response.data)) {
+        setApplications(response.data);
+      } else {
+        setApplications([]);
+      }
     } catch (err) {
       console.error('Error fetching applications:', err);
+      setApplications([]);
       setError('Failed to load applications from database.');
     } finally {
       setLoading(false);
@@ -49,10 +54,10 @@ export function App() {
   }, []);
 
   // Pagination Math
-  const totalPages = Math.ceil(applications.length / recordsPerPage) || 1;
+  const totalPages = Math.ceil((applications || []).length / recordsPerPage) || 1;
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-  const currentRecords = applications.slice(indexOfFirstRecord, indexOfLastRecord);
+  const currentRecords = (applications || []).slice(indexOfFirstRecord, indexOfLastRecord);
 
   // Status Badge Helper
   const getStatusBadge = (status) => {
@@ -191,7 +196,7 @@ export function App() {
               </h3>
             </div>
             <span className="badge-acad font-bold" style={{ fontSize: '0.9rem' }}>
-              {applications.length} Total Records
+              {(applications || []).length} Total Records
             </span>
           </div>
 
@@ -217,7 +222,7 @@ export function App() {
             </div>
           )}
 
-          {!loading && applications.length === 0 && (
+          {!loading && (applications || []).length === 0 && (
             <div
               className="p-8 text-center rounded-lg"
               style={{ backgroundColor: 'var(--surface-sunken)', border: '1px solid var(--border)' }}
@@ -227,7 +232,7 @@ export function App() {
           )}
 
           {/* Generous Padding & Styled Table */}
-          {applications.length > 0 && (
+          {(applications || []).length > 0 && (
             <div className="overflow-x-auto mb-6">
               <table className="w-full text-left border-collapse" style={{ minWidth: '850px' }}>
                 <thead>
@@ -373,7 +378,7 @@ export function App() {
           )}
 
           {/* Pagination Controls / Page Mover */}
-          {applications.length > 0 && (
+          {(applications || []).length > 0 && (
             <div className="flex items-center justify-between pt-4 border-t" style={{ borderColor: 'var(--border)' }}>
               <button
                 onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
