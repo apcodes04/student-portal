@@ -25,10 +25,11 @@ class Settings(BaseSettings):
 
     DATABASE_URL: Optional[str] = None
 
-    POSTGRES_USER: str = "postgres"
+    # IPv4 Pooler configuration for Supabase PostgreSQL (IPv4 compatible with Render/AWS/Vercel)
+    POSTGRES_USER: str = "postgres.kljmfwzinfdyemuvglvw"
     POSTGRES_PASSWORD: str = "SuperSecretPass123!"
-    POSTGRES_SERVER: str = "db.kljmfwzinfdyemuvglvw.supabase.co"
-    POSTGRES_PORT: int = 5432
+    POSTGRES_SERVER: str = "aws-0-ap-south-1.pooler.supabase.com"
+    POSTGRES_PORT: int = 6543
     POSTGRES_DB: str = "postgres"
 
     DB_POOL_SIZE: int = 10
