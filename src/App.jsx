@@ -1,306 +1,268 @@
-import React, { useState, useEffect } from "react";
-import AdmissionForm from "./components/AdmissionForm";
-import apiClient from "./api/client";
+/**
+ * The Acadbyte Brand Bible - Light Version Main Application Architecture
+ * 
+ * [PRESENTATION-TAG: REACT-UI]
+ * [PRESENTATION-TAG: ACADBYTE-LIGHT-THEME]
+ * [PRESENTATION-TAG: AXIOS-CLIENT]
+ */
 
-export default function App() {
+import React, { useState, useEffect } from 'react';
+import { AdmissionForm } from './components/AdmissionForm';
+import apiClient from './api/client';
+
+export function App() {
   const [applications, setApplications] = useState([]);
-  const [loading, setLoading] = useState(true);
-  
-  // State for View Details & Edit Modals
-  const [viewStudent, setViewStudent] = useState(null);
-  const [editStudent, setEditStudent] = useState(null);
-  const [editFormData, setEditFormData] = useState({ full_name: "", email: "", program: "AI", gpa: "" });
-  const [isUpdating, setIsUpdating] = useState(false);
+  const [activeTab, setActiveTab] = useState('applications');
+  const [healthStatus, setHealthStatus] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
+  // Fetch applications list from FastAPI backend
   const fetchApplications = async () => {
-    setLoading(true);
     try {
-      const response = await apiClient.get("/applications");
+      setLoading(true);
+      setError(null);
+      const response = await apiClient.get('/applications');
       setApplications(response.data);
     } catch (err) {
-      console.error("Failed to load applications:", err);
+      console.error('Error fetching applications:', err);
+      setError('Failed to load applications from database.');
     } finally {
       setLoading(false);
     }
   };
 
+  // Fetch system health telemetry
+  const fetchHealth = async () => {
+    try {
+      const response = await apiClient.get('/health');
+      setHealthStatus(response.data);
+    } catch (err) {
+      console.error('Error fetching health status:', err);
+    }
+  };
+
   useEffect(() => {
     fetchApplications();
+    fetchHealth();
   }, []);
 
-  const handleViewDetails = async (id) => {
-    try {
-      const response = await apiClient.get(`/applications/${id}`);
-      setViewStudent(response.data);
-    } catch (err) {
-      alert("Failed to fetch student details: " + (err.response?.data?.detail || err.message));
-    }
-  };
-
-  const handleOpenEdit = (student) => {
-    setEditStudent(student);
-    setEditFormData({
-      full_name: student.full_name,
-      email: student.email,
-      program: student.program,
-      gpa: student.gpa,
-    });
-  };
-
-  const handleSaveEdit = async (e) => {
-    e.preventDefault();
-    if (!editStudent) return;
-    setIsUpdating(true);
-
-    try {
-      await apiClient.put(`/applications/${editStudent.id}`, {
-        ...editFormData,
-        gpa: parseFloat(editFormData.gpa),
-      });
-      setEditStudent(null);
-      fetchApplications();
-    } catch (err) {
-      alert("Failed to update student record: " + (err.response?.data?.detail || err.message));
-    } finally {
-      setIsUpdating(false);
-    }
-  };
-
-  const handleStatusUpdate = async (id, newStatus) => {
-    try {
-      await apiClient.patch(`/applications/${id}/status`, { status: newStatus });
-      fetchApplications();
-    } catch (err) {
-      alert("Failed to update status: " + (err.response?.data?.detail || err.message));
-    }
-  };
-
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this candidate application record?")) return;
-    try {
-      await apiClient.delete(`/applications/${id}`);
-      fetchApplications();
-    } catch (err) {
-      alert("Failed to delete application: " + (err.response?.data?.detail || err.message));
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-900 p-4 sm:p-8 font-sans">
-      <div className="max-w-5xl mx-auto space-y-6">
-        {/* Header Navigation */}
-        <header className="bg-slate-900 text-white p-6 rounded-xl shadow-lg flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
-          <div>
-            <h1 className="text-xl font-black tracking-tight">Student Admission Portal</h1>
-            <p className="text-xs text-slate-400 font-medium">
-              Enterprise Production Architecture (FastAPI + Async Database + React)
-            </p>
-          </div>
-          <button
-            onClick={fetchApplications}
-            className="bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white text-xs px-4 py-2 rounded-lg font-bold transition shadow-sm"
-          >
-            Refresh Registry
-          </button>
-        </header>
-
-        {/* Admission Submission Form */}
-        <AdmissionForm onSuccess={fetchApplications} />
-
-        {/* Applications Registry Table */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-          <div className="p-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
-            <span className="font-bold text-xs uppercase tracking-wider text-slate-700">
-              Active Candidate Registry ({applications.length} Records)
+    <div style={{ backgroundColor: 'var(--background)', minHeight: '100vh', color: 'var(--foreground)' }}>
+      {/* Acadbyte Header Chrome */}
+      <header
+        style={{
+          borderBottom: '1px solid var(--border)',
+          backgroundColor: 'var(--surface)',
+          position: 'sticky',
+          top: 0,
+          zIndex: 50,
+        }}
+        className="px-6 py-4 transition-calm"
+      >
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div
+              className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-white"
+              style={{ backgroundColor: 'var(--brand)' }}
+            >
+              A
+            </div>
+            <span className="type-lead m-0 font-bold" style={{ color: 'var(--foreground)' }}>
+              Acadbyte <span style={{ color: 'var(--muted-foreground)', fontWeight: '400' }}>/ Admissions</span>
             </span>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm border-collapse">
-              <thead className="bg-slate-100 text-slate-500 text-xs uppercase border-b border-slate-200">
-                <tr>
-                  <th className="p-3">Applicant Name</th>
-                  <th className="p-3">Email</th>
-                  <th className="p-3">Program</th>
-                  <th className="p-3">GPA</th>
-                  <th className="p-3">Status</th>
-                  <th className="p-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200 text-xs">
-                {loading ? (
-                  <tr>
-                    <td colSpan="6" className="text-center p-8 text-slate-400 font-medium">
-                      Loading data from backend database engine...
-                    </td>
-                  </tr>
-                ) : applications.length === 0 ? (
-                  <tr>
-                    <td colSpan="6" className="text-center p-8 text-slate-400 font-medium">
-                      No active student applications registered.
-                    </td>
-                  </tr>
-                ) : (
-                  applications.map((app) => (
-                    <tr key={app.id} className="hover:bg-slate-50 transition">
-                      <td className="p-3 font-semibold text-slate-900">{app.full_name}</td>
-                      <td className="p-3 text-slate-600">{app.email}</td>
-                      <td className="p-3 text-slate-800 font-semibold">{app.program}</td>
-                      <td className="p-3 font-bold">{Number(app.gpa).toFixed(2)}</td>
-                      <td className="p-3">
-                        <span
-                          className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                            app.status === "ACCEPTED"
-                              ? "bg-emerald-100 text-emerald-800"
-                              : app.status === "REJECTED"
-                              ? "bg-red-100 text-red-800"
-                              : app.status === "UNDER_REVIEW"
-                              ? "bg-purple-100 text-purple-800"
-                              : "bg-blue-100 text-blue-800"
-                          }`}
-                        >
-                          {app.status}
-                        </span>
-                      </td>
-                      <td className="p-3 text-right space-x-1 whitespace-nowrap">
-                        <button
-                          onClick={() => handleViewDetails(app.id)}
-                          className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-2 py-1 rounded text-[11px] font-bold border border-indigo-300"
-                        >
-                          View
-                        </button>
-                        <button
-                          onClick={() => handleOpenEdit(app)}
-                          className="bg-sky-50 hover:bg-sky-100 text-sky-700 px-2 py-1 rounded text-[11px] font-bold border border-sky-300"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleStatusUpdate(app.id, "ACCEPTED")}
-                          className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-2 py-1 rounded text-[11px] font-bold border border-emerald-300"
-                        >
-                          Accept
-                        </button>
-                        <button
-                          onClick={() => handleStatusUpdate(app.id, "REJECTED")}
-                          className="bg-amber-50 hover:bg-amber-100 text-amber-700 px-2 py-1 rounded text-[11px] font-bold border border-amber-300"
-                        >
-                          Reject
-                        </button>
-                        <button
-                          onClick={() => handleDelete(app.id)}
-                          className="bg-red-50 hover:bg-red-100 text-red-700 px-2 py-1 rounded text-[11px] font-bold border border-red-300"
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))
+          <div className="flex items-center gap-3">
+            <button className="btn-acad-pill">
+              Dashboard
+            </button>
+            <span className="badge-acad">
+              ● System Online
+            </span>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content Area */}
+      <main className="max-w-6xl mx-auto px-6 py-10">
+        {/* Acadbyte Hero Section */}
+        <section className="mb-10 text-center max-w-3xl mx-auto">
+          <span className="type-label block mb-3" style={{ color: 'var(--brand)' }}>
+            RETRIEVAL ENGINE · STUDENT ADMISSIONS
+          </span>
+          <h1 className="type-display mb-4">
+            Stop consuming admissions data.{' '}
+            <span style={{ fontStyle: 'italic', color: 'var(--brand)' }}>Start retaining it.</span>
+          </h1>
+          <p className="body-text text-lg max-w-2xl mx-auto">
+            Learning something is the easy part. Still having it in a month is the product.
+            Submit student credentials securely through our PostgreSQL cloud gateway.
+          </p>
+        </section>
+
+        {/* Acadbyte Segmented Tab Control */}
+        <div className="flex justify-center mb-8">
+          <div
+            className="inline-flex p-1 rounded-full"
+            style={{ backgroundColor: 'var(--surface-sunken)', border: '1px solid var(--border)' }}
+          >
+            <button
+              onClick={() => setActiveTab('applications')}
+              className="px-6 py-2 rounded-full font-semibold transition-calm text-sm"
+              style={{
+                backgroundColor: activeTab === 'applications' ? 'var(--foreground)' : 'transparent',
+                color: activeTab === 'applications' ? 'var(--background)' : 'var(--muted-foreground)',
+              }}
+            >
+              Apply & Records
+            </button>
+
+            <button
+              onClick={() => setActiveTab('health')}
+              className="px-6 py-2 rounded-full font-semibold transition-calm text-sm"
+              style={{
+                backgroundColor: activeTab === 'health' ? 'var(--foreground)' : 'transparent',
+                color: activeTab === 'health' ? 'var(--background)' : 'var(--muted-foreground)',
+              }}
+            >
+              System Telemetry
+            </button>
+          </div>
+        </div>
+
+        {activeTab === 'applications' && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            {/* Form Column */}
+            <div className="lg:col-span-6">
+              <AdmissionForm onApplicationCreated={fetchApplications} />
+            </div>
+
+            {/* List Column */}
+            <div className="lg:col-span-6">
+              <div className="acad-card">
+                {/* Ink Blot Accent */}
+                <div className="ink-blot" style={{ backgroundColor: 'var(--ink-lemon)' }}></div>
+
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <span className="type-label block mb-1">RECORDS</span>
+                    <h3 className="type-lead m-0">Recent Applications</h3>
+                  </div>
+                  <span className="badge-acad">
+                    {applications.length} Records
+                  </span>
+                </div>
+
+                {loading && (
+                  <p className="body-text text-center py-6">Loading application records...</p>
                 )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
 
-      {/* Modal 1: View Individual Student Details */}
-      {viewStudent && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-2xl border border-slate-200 p-6 max-w-md w-full space-y-4">
-            <h3 className="text-base font-bold text-slate-800 border-b pb-2">Individual Student Record Details</h3>
-            <div className="space-y-2 text-xs text-slate-700">
-              <p><strong>Student ID:</strong> <span className="font-mono bg-slate-100 px-1 py-0.5 rounded">{viewStudent.id}</span></p>
-              <p><strong>Full Name:</strong> {viewStudent.full_name}</p>
-              <p><strong>Email Address:</strong> {viewStudent.email}</p>
-              <p><strong>Program Code:</strong> {viewStudent.program}</p>
-              <p><strong>GPA Score:</strong> {viewStudent.gpa}</p>
-              <p><strong>Application Status:</strong> {viewStudent.status}</p>
-              <p><strong>Created At:</strong> {new Date(viewStudent.created_at).toLocaleString()}</p>
-              <p><strong>Last Updated:</strong> {new Date(viewStudent.updated_at).toLocaleString()}</p>
-            </div>
-            <div className="flex justify-end pt-2">
-              <button
-                onClick={() => setViewStudent(null)}
-                className="bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs px-4 py-2 rounded-lg"
-              >
-                Close Window
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+                {error && (
+                  <div
+                    className="p-3 mb-4 rounded-3 text-sm fw-semibold"
+                    style={{ backgroundColor: 'var(--incorrect-soft)', color: 'var(--incorrect)' }}
+                  >
+                    ⚠️ {error}
+                  </div>
+                )}
 
-      {/* Modal 2: Edit Student Record */}
-      {editStudent && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-2xl border border-slate-200 p-6 max-w-md w-full space-y-4">
-            <h3 className="text-base font-bold text-slate-800 border-b pb-2">Edit Student Record</h3>
-            <form onSubmit={handleSaveEdit} className="space-y-3 text-xs">
-              <div>
-                <label className="block font-bold mb-1">Full Name</label>
-                <input
-                  type="text"
-                  value={editFormData.full_name}
-                  onChange={(e) => setEditFormData({ ...editFormData, full_name: e.target.value })}
-                  className="w-full p-2 border rounded"
-                  required
-                />
+                {!loading && applications.length === 0 && (
+                  <div
+                    className="p-6 text-center rounded-2"
+                    style={{ backgroundColor: 'var(--surface-sunken)', border: '1px solid var(--border)' }}
+                  >
+                    <p className="body-text m-0">No application records found. Submit a form to begin.</p>
+                  </div>
+                )}
+
+                <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
+                  {applications.map((app) => (
+                    <div
+                      key={app.id}
+                      className="p-4 rounded-2 transition-calm"
+                      style={{
+                        backgroundColor: 'var(--surface-sunken)',
+                        border: '1px solid var(--border)',
+                      }}
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <h4 className="font-semibold text-base m-0" style={{ color: 'var(--foreground)' }}>
+                            {app.full_name}
+                          </h4>
+                          <span className="text-xs body-text">{app.email}</span>
+                        </div>
+                        <span className="badge-acad">
+                          GPA {app.gpa}
+                        </span>
+                      </div>
+
+                      <div className="flex justify-between items-center text-xs mt-3 pt-2 border-t" style={{ borderColor: 'var(--border)' }}>
+                        <span className="font-mono font-semibold" style={{ color: 'var(--brand)' }}>
+                          PROGRAM: {app.program}
+                        </span>
+                        <span style={{ color: 'var(--muted-foreground)' }}>
+                          ID: #{app.id}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div>
-                <label className="block font-bold mb-1">Email Address</label>
-                <input
-                  type="email"
-                  value={editFormData.email}
-                  onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
-                  className="w-full p-2 border rounded"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block font-bold mb-1">Program</label>
-                <select
-                  value={editFormData.program}
-                  onChange={(e) => setEditFormData({ ...editFormData, program: e.target.value })}
-                  className="w-full p-2 border rounded"
-                >
-                  <option value="AI">AI</option>
-                  <option value="CS">CS</option>
-                  <option value="IT">IT</option>
-                  <option value="DATA_SCIENCE">Data Science</option>
-                  <option value="EXTC">EXTC</option>
-                </select>
-              </div>
-              <div>
-                <label className="block font-bold mb-1">GPA (0.00 - 10.00)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={editFormData.gpa}
-                  onChange={(e) => setEditFormData({ ...editFormData, gpa: e.target.value })}
-                  className="w-full p-2 border rounded"
-                  required
-                />
-              </div>
-              <div className="flex justify-end space-x-2 pt-3">
-                <button
-                  type="button"
-                  onClick={() => setEditStudent(null)}
-                  className="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold px-3 py-1.5 rounded"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isUpdating}
-                  className="bg-sky-600 hover:bg-sky-700 text-white font-bold px-4 py-1.5 rounded"
-                >
-                  {isUpdating ? "Saving..." : "Save Changes"}
-                </button>
-              </div>
-            </form>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+
+        {activeTab === 'health' && (
+          <div className="max-w-2xl mx-auto">
+            <div className="acad-card">
+              <div className="ink-blot" style={{ backgroundColor: 'var(--ink-coral)' }}></div>
+
+              <span className="type-label block mb-1">OBSERVABILITY</span>
+              <h3 className="type-lead mb-4">System Telemetry & Health</h3>
+
+              {healthStatus ? (
+                <div className="space-y-4">
+                  <div
+                    className="p-4 rounded-2"
+                    style={{ backgroundColor: 'var(--surface-sunken)', border: '1px solid var(--border)' }}
+                  >
+                    <span className="type-label block mb-1">STATUS</span>
+                    <span className="text-lg font-bold" style={{ color: 'var(--brand)' }}>
+                      ● {healthStatus.status?.toUpperCase()}
+                    </span>
+                  </div>
+
+                  <div
+                    className="p-4 rounded-2"
+                    style={{ backgroundColor: 'var(--surface-sunken)', border: '1px solid var(--border)' }}
+                  >
+                    <span className="type-label block mb-1">DATABASE ENGINE</span>
+                    <span className="font-semibold" style={{ color: 'var(--foreground)' }}>
+                      {healthStatus.database}
+                    </span>
+                  </div>
+
+                  <div
+                    className="p-4 rounded-2"
+                    style={{ backgroundColor: 'var(--surface-sunken)', border: '1px solid var(--border)' }}
+                  >
+                    <span className="type-label block mb-1">ENVIRONMENT</span>
+                    <span className="font-semibold" style={{ color: 'var(--foreground)' }}>
+                      {healthStatus.environment}
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <p className="body-text">Fetching live telemetry data...</p>
+              )}
+            </div>
+          </div>
+        )}
+      </main>
     </div>
   );
 }
+
+export default App;

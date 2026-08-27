@@ -8,10 +8,10 @@
 
 import axios from 'axios';
 
-// Use relative URL when deployed on Vercel or environment override
+// Use relative URL when deployed on Vercel or port 8080 for local dev
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL !== undefined 
   ? import.meta.env.VITE_API_BASE_URL 
-  : (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:8000' : '');
+  : (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://localhost:8080' : '');
 
 // [PRESENTATION-TAG: AXIOS-CLIENT] Axios HTTP Client Instance
 const apiClient = axios.create({

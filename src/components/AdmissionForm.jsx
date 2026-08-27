@@ -1,8 +1,8 @@
 /**
- * Controlled Component Admission Form with Real-time Client Validation
+ * The Acadbyte Brand Bible - Light Version Admission Form Component
  * 
  * [PRESENTATION-TAG: REACT-UI]
- * [PRESENTATION-TAG: INPUT-SANITIZATION]
+ * [PRESENTATION-TAG: ACADBYTE-LIGHT-THEME]
  * [PRESENTATION-TAG: CLIENT-VALIDATION]
  * [PRESENTATION-TAG: AXIOS-CLIENT]
  */
@@ -98,7 +98,7 @@ export function AdmissionForm({ onApplicationCreated }) {
     setErrors(newErrors);
 
     if (Object.values(newErrors).some((err) => err !== '')) {
-      setServerError('Please fix the highlighted required errors before submitting.');
+      setServerError('Answer honestly — the schedule only works if it knows the truth. Please fix the highlighted fields.');
       return;
     }
 
@@ -136,126 +136,134 @@ export function AdmissionForm({ onApplicationCreated }) {
   };
 
   return (
-    <div className="card shadow-sm mb-4 border-0 rounded-3">
-      <div className="card-header bg-light py-3 border-bottom">
-        <h5 className="mb-0 text-black fw-bold" style={{ color: '#000000', fontWeight: '800', fontSize: '1.25rem' }}>
+    <div className="acad-card mb-6">
+      {/* Decorative Brand Bible Ink Blot */}
+      <div className="ink-blot" style={{ backgroundColor: 'var(--ink-sky)' }}></div>
+
+      <div className="mb-4">
+        <span className="type-label block mb-1" style={{ color: 'var(--brand)' }}>
+          APPLY · ADMISSION GATEWAY
+        </span>
+        <h3 className="type-lead m-0" style={{ color: 'var(--foreground)', fontWeight: '600' }}>
           New Student Admission Form
-        </h5>
+        </h3>
       </div>
-      <div className="card-body p-4">
-        {successMessage && <div className="alert alert-success fw-bold">{successMessage}</div>}
-        {serverError && <div className="alert alert-danger fw-bold">{serverError}</div>}
 
-        <form onSubmit={handleSubmit} noValidate>
-          <div className="mb-3">
-            <label className="form-label text-dark fw-semibold">Full Name *</label>
+      {successMessage && (
+        <div
+          className="p-3 mb-4 rounded-3 fw-semibold"
+          style={{
+            backgroundColor: 'var(--correct-soft)',
+            color: 'var(--correct)',
+            border: '1px solid var(--correct)',
+          }}
+        >
+          ✓ {successMessage}
+        </div>
+      )}
+
+      {serverError && (
+        <div
+          className="p-3 mb-4 rounded-3 fw-semibold"
+          style={{
+            backgroundColor: 'var(--incorrect-soft)',
+            color: 'var(--incorrect)',
+            border: '1px solid var(--incorrect)',
+          }}
+        >
+          ⚠️ {serverError}
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} noValidate>
+        <div className="mb-4">
+          <label className="type-label block mb-2">FULL NAME *</label>
+          <input
+            type="text"
+            name="full_name"
+            className={`acad-input ${errors.full_name ? 'is-invalid' : ''}`}
+            value={formData.full_name}
+            onChange={handleChange}
+            onBlur={handleBlur}
+          />
+          {errors.full_name && (
+            <div
+              className="fw-semibold mt-2"
+              style={{ color: 'var(--incorrect)', fontSize: '0.875rem' }}
+            >
+              ⚠️ {errors.full_name}
+            </div>
+          )}
+        </div>
+
+        <div className="mb-4">
+          <label className="type-label block mb-2">EMAIL ADDRESS *</label>
+          <input
+            type="email"
+            name="email"
+            className={`acad-input ${errors.email ? 'is-invalid' : ''}`}
+            value={formData.email}
+            onChange={handleChange}
+            onBlur={handleBlur}
+          />
+          {errors.email && (
+            <div
+              className="fw-semibold mt-2"
+              style={{ color: 'var(--incorrect)', fontSize: '0.875rem' }}
+            >
+              ⚠️ {errors.email}
+            </div>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div>
+            <label className="type-label block mb-2">DEGREE PROGRAM *</label>
+            <select
+              name="program"
+              className="acad-input"
+              value={formData.program}
+              onChange={handleChange}
+            >
+              <option value="CS">Computer Science (CS)</option>
+              <option value="AI">Artificial Intelligence (AI)</option>
+              <option value="IT">Information Technology (IT)</option>
+              <option value="DATA_SCIENCE">Data Science</option>
+              <option value="EXTC">Electronics & Telecom (EXTC)</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="type-label block mb-2">GPA (0.0 TO 10.0) *</label>
             <input
-              type="text"
-              name="full_name"
-              className={`form-control form-control-lg ${errors.full_name ? 'is-invalid border-danger border-2' : ''}`}
-              value={formData.full_name}
+              type="number"
+              step="0.1"
+              name="gpa"
+              className={`acad-input ${errors.gpa ? 'is-invalid' : ''}`}
+              value={formData.gpa}
               onChange={handleChange}
               onBlur={handleBlur}
             />
-            {errors.full_name && (
-              <div className="text-danger fw-bold mt-1" style={{ color: '#dc3545', fontWeight: '700', fontSize: '0.9rem' }}>
-                ⚠️ {errors.full_name}
-              </div>
-            )}
-          </div>
-
-          <div className="mb-3">
-            <label className="form-label text-dark fw-semibold">Email Address *</label>
-            <input
-              type="email"
-              name="email"
-              className={`form-control form-control-lg ${errors.email ? 'is-invalid border-danger border-2' : ''}`}
-              value={formData.email}
-              onChange={handleChange}
-              onBlur={handleBlur}
-            />
-            {errors.email && (
-              <div className="text-danger fw-bold mt-1" style={{ color: '#dc3545', fontWeight: '700', fontSize: '0.9rem' }}>
-                ⚠️ {errors.email}
-              </div>
-            )}
-          </div>
-
-          <div className="row mb-4">
-            <div className="col-md-6">
-              <label className="form-label text-dark fw-semibold">Degree Program *</label>
-              <select
-                name="program"
-                className="form-select form-select-lg"
-                value={formData.program}
-                onChange={handleChange}
+            {errors.gpa && (
+              <div
+                className="fw-semibold mt-2"
+                style={{ color: 'var(--incorrect)', fontSize: '0.875rem' }}
               >
-                <option value="CS">Computer Science (CS)</option>
-                <option value="AI">Artificial Intelligence (AI)</option>
-                <option value="IT">Information Technology (IT)</option>
-                <option value="DATA_SCIENCE">Data Science</option>
-                <option value="EXTC">Electronics & Telecom (EXTC)</option>
-              </select>
-            </div>
-
-            <div className="col-md-6">
-              <label className="form-label text-dark fw-semibold">GPA (0.0 to 10.0) *</label>
-              <input
-                type="number"
-                step="0.1"
-                name="gpa"
-                className={`form-control form-control-lg ${errors.gpa ? 'is-invalid border-danger border-2' : ''}`}
-                value={formData.gpa}
-                onChange={handleChange}
-                onBlur={handleBlur}
-              />
-              {errors.gpa && (
-                <div className="text-danger fw-bold mt-1" style={{ color: '#dc3545', fontWeight: '700', fontSize: '0.9rem' }}>
-                  ⚠️ {errors.gpa}
-                </div>
-              )}
-            </div>
+                ⚠️ {errors.gpa}
+              </div>
+            )}
           </div>
+        </div>
 
-          {/* Bold Green Pressable Action Button */}
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-100 text-white fw-bold py-3 text-uppercase border-0 shadow"
-            style={{
-              backgroundColor: isLoading ? '#6c757d' : '#198754',
-              fontSize: '1.1rem',
-              letterSpacing: '1px',
-              borderRadius: '10px',
-              boxShadow: isLoading ? 'none' : '0 6px 16px rgba(25, 135, 84, 0.4)',
-              cursor: isLoading ? 'not-allowed' : 'pointer',
-              transition: 'all 0.2s ease-in-out',
-              transform: 'scale(1)',
-            }}
-            onMouseDown={(e) => {
-              if (!isLoading) e.currentTarget.style.transform = 'scale(0.97)';
-            }}
-            onMouseUp={(e) => {
-              if (!isLoading) e.currentTarget.style.transform = 'scale(1)';
-            }}
-            onMouseEnter={(e) => {
-              if (!isLoading) {
-                e.currentTarget.style.backgroundColor = '#157347';
-                e.currentTarget.style.boxShadow = '0 8px 20px rgba(25, 135, 84, 0.5)';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!isLoading) {
-                e.currentTarget.style.backgroundColor = '#198754';
-                e.currentTarget.style.boxShadow = '0 6px 16px rgba(25, 135, 84, 0.4)';
-                e.currentTarget.style.transform = 'scale(1)';
-              }
-            }}
-          >
-            {isLoading ? '⏳ Submitting Application...' : '🚀 Submit Application'}
-          </button>
-        </form>
-      </div>
+        {/* Acadbyte Brand Bible Green Pill Action Button */}
+        <button
+          type="submit"
+          disabled={isLoading}
+          className="btn-acad-brand w-full"
+        >
+          {isLoading ? 'Submitting Application...' : 'Submit Application →'}
+        </button>
+      </form>
     </div>
   );
 }
