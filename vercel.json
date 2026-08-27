@@ -13,30 +13,30 @@
       }
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/applications(.*)",
-      "dest": "api/index.py"
+      "source": "/applications",
+      "destination": "/api/index.py"
     },
     {
-      "src": "/health",
-      "dest": "api/index.py"
+      "source": "/applications/(.*)",
+      "destination": "/api/index.py"
     },
     {
-      "src": "/docs",
-      "dest": "api/index.py"
+      "source": "/health",
+      "destination": "/api/index.py"
     },
     {
-      "src": "/openapi.json",
-      "dest": "api/index.py"
+      "source": "/docs",
+      "destination": "/api/index.py"
     },
     {
-      "src": "/assets/(.*)",
-      "dest": "frontend/assets/$1"
+      "source": "/openapi.json",
+      "destination": "/api/index.py"
     },
     {
-      "src": "/(.*)",
-      "dest": "frontend/$1"
+      "source": "/(.*)",
+      "destination": "/frontend/$1"
     }
   ]
 }
