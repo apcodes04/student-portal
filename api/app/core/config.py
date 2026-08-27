@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     HOST: str = "0.0.0.0"
     PORT: int = 8000
 
-    # [PRESENTATION-TAG: POSTGRESQL-STORAGE] PostgreSQL Connection Parameters
+    # [PRESENTATION-TAG: POSTGRESQL-STORAGE] PostgreSQL Connection Parameters (Supabase Cloud)
     POSTGRES_USER: str = "postgres.kljmfwzinfdyemuvglvw"
     POSTGRES_PASSWORD: str = "SuperSecretPass123!"
     POSTGRES_SERVER: str = "aws-0-ap-south-1.pooler.supabase.com"
@@ -41,12 +41,11 @@ class Settings(BaseSettings):
     RATE_LIMIT_PER_MINUTE: str = "60/minute"
     RATE_LIMIT_MUTATION_PER_MINUTE: str = "20/minute"
 
-    # [PRESENTATION-TAG: ANTI-CSRF-PROTECTION] Anti-CSRF Token Credentials
+    # [PRESENTATION-TAG: ANTI-CSRF-PROTECTION] Anti-CSRF Token Credentials & Universal CORS
     CORS_ORIGINS: List[str] = [
+        "*",
         "http://localhost:3000",
         "http://127.0.0.1:3000",
-        "http://localhost:8090",
-        "http://127.0.0.1:8090",
         "http://localhost:8000",
         "http://127.0.0.1:8000",
     ]

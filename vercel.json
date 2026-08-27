@@ -1,17 +1,9 @@
 {
-  "buildCommand": "npm run build",
+  "buildCommand": "vite build",
   "outputDirectory": "dist",
   "rewrites": [
     {
-      "source": "/",
-      "destination": "/index.html"
-    },
-    {
       "source": "/applications(.*)",
-      "destination": "/api/index.py"
-    },
-    {
-      "source": "/applications",
       "destination": "/api/index.py"
     },
     {
@@ -24,10 +16,6 @@
     },
     {
       "source": "/openapi.json",
-      "destination": "/api/index.py"
-    },
-    {
-      "source": "/api",
       "destination": "/api/index.py"
     }
   ]

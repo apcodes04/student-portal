@@ -31,8 +31,11 @@ async def lifespan(app: FastAPI):
     Application Lifespan Event Handler.
     Executes database schema migration table creation on startup.
     """
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+    except Exception as e:
+        print("Database schema migration notice:", e)
     yield
 
 
@@ -56,7 +59,7 @@ app.add_middleware(SecurityHeadersMiddleware)
 # [PRESENTATION-TAG: FASTAPI-FRAMEWORK] Configure Cross-Origin Resource Sharing (CORS)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -89,11 +92,6 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 # Register Application Routers
 app.include_router(applications.router)
-
-
-@app.get("/api", tags=["Health"])
-def read_root():
-    return {"message": "Student Admission System API is running cleanly."}
 
 
 @app.get("/health", tags=["Health"])
