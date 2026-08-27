@@ -15,23 +15,23 @@
   "routes": [
     {
       "src": "/applications(.*)",
-      "dest": "/api/index.py"
+      "dest": "/api/index"
     },
     {
       "src": "/health",
-      "dest": "/api/index.py"
+      "dest": "/api/index"
     },
     {
       "src": "/docs",
-      "dest": "/api/index.py"
+      "dest": "/api/index"
     },
     {
       "src": "/openapi.json",
-      "dest": "/api/index.py"
+      "dest": "/api/index"
     },
     {
       "src": "/api(.*)",
-      "dest": "/api/index.py"
+      "dest": "/api/index"
     },
     {
       "handle": "filesystem"
