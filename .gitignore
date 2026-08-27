@@ -5,6 +5,8 @@ __pycache__/
 *.sqlite3
 *.db
 .env
+.env.*
+.env.production
 .venv/
 env/
 venv/
@@ -12,9 +14,7 @@ ENV/
 
 # Node / React
 node_modules/
-frontend/node_modules/
 dist/
-frontend/dist/
 .DS_Store
 
 # Logs
