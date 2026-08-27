@@ -184,3 +184,5 @@ export function AdmissionForm({ onApplicationCreated }) {
     </div>
   );
 }
+
+export default AdmissionForm;
