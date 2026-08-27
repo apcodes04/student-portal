@@ -9,26 +9,30 @@ import ssl
 from typing import AsyncGenerator
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import declarative_base
-from sqlalchemy.pool import NullPool
 
 from app.core.config import settings
 
-# Configure connection args with statement_cache_size=0 and SSL for Supabase compatibility
+# Configure connection args for Supabase PostgreSQL compatibility
 connect_args = {
     "statement_cache_size": 0
 }
 
-# Create SSL context for Supabase Cloud PostgreSQL
-ctx = ssl.create_default_context()
-ctx.check_hostname = False
-ctx.verify_mode = ssl.CERT_NONE
-connect_args["ssl"] = ctx
+# Add SSL context for cloud PostgreSQL
+try:
+    ctx = ssl.create_default_context()
+    ctx.check_hostname = False
+    ctx.verify_mode = ssl.CERT_NONE
+    connect_args["ssl"] = ctx
+except Exception as ssl_err:
+    print("SSL context creation notice:", ssl_err)
 
-# Instantiate Async Engine with NullPool for Vercel Serverless compatibility
+# Instantiate Async Engine
 engine = create_async_engine(
     settings.async_database_url,
     echo=settings.DEBUG,
-    poolclass=NullPool,
+    pool_size=settings.DB_POOL_SIZE,
+    max_overflow=settings.DB_MAX_OVERFLOW,
+    pool_timeout=settings.DB_POOL_TIMEOUT,
     connect_args=connect_args
 )
 
