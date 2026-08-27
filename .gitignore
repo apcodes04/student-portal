@@ -1,0 +1,21 @@
+# Python / FastAPI
+__pycache__/
+*.py[cod]
+*$py.class
+*.sqlite3
+*.db
+.env
+.venv/
+env/
+venv/
+ENV/
+
+# Node / React
+node_modules/
+frontend/node_modules/
+dist/
+frontend/dist/
+.DS_Store
+
+# Logs
+*.log
