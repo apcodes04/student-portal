@@ -1,5 +1,5 @@
 """
-Application Router Endpoints with Full CRUD & Status Operations
+Application Router Endpoints with Full CRUD & Dual Path Matching
 
 [PRESENTATION-TAG: FASTAPI-FRAMEWORK]
 [PRESENTATION-TAG: ANTI-CSRF-PROTECTION]
@@ -22,15 +22,13 @@ from app.schemas.application import (
 )
 from app.core.security import verify_csrf_token
 
-router = APIRouter(prefix="/applications", tags=["Applications"])
+router = APIRouter(tags=["Applications"])
 
 
 @router.get("/csrf-token", summary="Retrieve Anti-CSRF Cookie and Token")
+@router.get("/applications/csrf-token", summary="Retrieve Anti-CSRF Token")
 def get_csrf_token(response: Response):
-    """
-    [PRESENTATION-TAG: ANTI-CSRF-PROTECTION]
-    Generates a secure cryptographically random CSRF token and sets double-submit cookie.
-    """
+    """Generates secure Anti-CSRF double-submit token."""
     csrf_token = secrets.token_hex(32)
     response.set_cookie(
         key="csrf_token",
@@ -50,14 +48,18 @@ def get_csrf_token(response: Response):
     dependencies=[Depends(verify_csrf_token)],
     summary="Create New Application"
 )
+@router.post(
+    "/applications",
+    response_model=ApplicationResponse,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(verify_csrf_token)],
+    summary="Create New Application Direct"
+)
 async def create_application(
     payload: ApplicationCreate,
     db: AsyncSession = Depends(get_db)
 ):
-    """
-    [PRESENTATION-TAG: SQLALCHEMY-ASYNCPG]
-    Persists new application record to Supabase PostgreSQL database.
-    """
+    """Persists new application record to Supabase PostgreSQL database."""
     new_app = Application(
         full_name=payload.full_name,
         email=payload.email,
@@ -72,12 +74,10 @@ async def create_application(
 
 
 @router.get("", summary="List All Applications")
+@router.get("/", summary="List All Applications Root")
+@router.get("/applications", summary="List All Applications Path")
 async def list_applications(db: AsyncSession = Depends(get_db)):
-    """
-    [PRESENTATION-TAG: SQLALCHEMY-ASYNCPG]
-    Retrieves all application records ordered by creation timestamp descending.
-    Catches exceptions cleanly to prevent serverless 500 crashes.
-    """
+    """Retrieves all application records ordered by creation timestamp descending."""
     try:
         result = await db.execute(select(Application).order_by(Application.created_at.desc()))
         records = result.scalars().all()
@@ -91,6 +91,7 @@ async def list_applications(db: AsyncSession = Depends(get_db)):
 
 
 @router.get("/{application_id}", summary="Get Application Details")
+@router.get("/applications/{application_id}", summary="Get Application Details Path")
 async def get_application(application_id: str, db: AsyncSession = Depends(get_db)):
     """Retrieves single application record by UUID."""
     result = await db.execute(select(Application).where(Application.id == application_id))
@@ -101,6 +102,7 @@ async def get_application(application_id: str, db: AsyncSession = Depends(get_db
 
 
 @router.put("/{application_id}", summary="Update Application Record")
+@router.put("/applications/{application_id}", summary="Update Application Record Path")
 async def update_application(
     application_id: str,
     payload: ApplicationUpdate,
@@ -129,6 +131,7 @@ async def update_application(
 
 
 @router.patch("/{application_id}/status", summary="Update Status")
+@router.patch("/applications/{application_id}/status", summary="Update Status Path")
 async def update_application_status(
     application_id: str,
     payload: ApplicationStatusUpdate,
@@ -147,6 +150,7 @@ async def update_application_status(
 
 
 @router.delete("/{application_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Delete Application Record")
+@router.delete("/applications/{application_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Delete Application Record Path")
 async def delete_application(application_id: str, db: AsyncSession = Depends(get_db)):
     """Deletes application record from database."""
     result = await db.execute(select(Application).where(Application.id == application_id))
