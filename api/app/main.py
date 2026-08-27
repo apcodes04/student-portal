@@ -91,7 +91,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 app.include_router(applications.router)
 
 
-@app.get("/", tags=["Health"])
+@app.get("/api", tags=["Health"])
 def read_root():
     return {"message": "Student Admission System API is running cleanly."}
 
