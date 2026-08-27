@@ -29,7 +29,7 @@ export function AdmissionForm({ onApplicationCreated }) {
   // [PRESENTATION-TAG: CLIENT-VALIDATION] Validate input values instantly on client
   const validateField = (name, value) => {
     let errorMsg = '';
-    const trimmedVal = typeof value === 'string' ? value.trim() : '';
+    const trimmedVal = typeof value === 'string' ? value.trim() : (value !== null && value !== undefined ? String(value).trim() : '');
 
     if (name === 'full_name') {
       if (!trimmedVal) {
@@ -46,13 +46,15 @@ export function AdmissionForm({ onApplicationCreated }) {
         errorMsg = 'Enter a valid email address';
       }
     } else if (name === 'gpa') {
-      const num = parseFloat(value);
-      if (value === '' || value === null || value === undefined) {
+      if (!trimmedVal) {
         errorMsg = 'GPA is required';
-      } else if (isNaN(num)) {
-        errorMsg = 'GPA is required';
-      } else if (num < 0.0 || num > 10.0) {
-        errorMsg = 'GPA must be between 0.0 and 10.0';
+      } else {
+        const num = parseFloat(trimmedVal);
+        if (isNaN(num)) {
+          errorMsg = 'GPA is required';
+        } else if (num < 0.0 || num > 10.0) {
+          errorMsg = 'GPA must be between 0.0 and 10.0';
+        }
       }
     }
     return errorMsg;
@@ -72,6 +74,14 @@ export function AdmissionForm({ onApplicationCreated }) {
     setErrors((prev) => ({ ...prev, [name]: fieldError }));
   };
 
+  // Trigger validation on field blur (when user tabs away from input)
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+    const cleanValue = sanitizeInput(value);
+    const fieldError = validateField(name, cleanValue);
+    setErrors((prev) => ({ ...prev, [name]: fieldError }));
+  };
+
   // [PRESENTATION-TAG: REACT-UI] [PRESENTATION-TAG: AXIOS-CLIENT] Form Submission Handler
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -85,8 +95,10 @@ export function AdmissionForm({ onApplicationCreated }) {
       gpa: validateField('gpa', formData.gpa),
     };
 
+    setErrors(newErrors);
+
     if (Object.values(newErrors).some((err) => err !== '')) {
-      setErrors(newErrors);
+      setServerError('Please fix the highlighted required errors before submitting.');
       return;
     }
 
@@ -124,14 +136,14 @@ export function AdmissionForm({ onApplicationCreated }) {
   };
 
   return (
-    <div className="card shadow-sm mb-4">
-      <div className="card-header bg-light">
-        <h5 className="mb-0 text-black fw-bold" style={{ color: '#000000', fontWeight: '800' }}>
+    <div className="card shadow-sm mb-4 border-0 rounded-3">
+      <div className="card-header bg-light py-3 border-bottom">
+        <h5 className="mb-0 text-black fw-bold" style={{ color: '#000000', fontWeight: '800', fontSize: '1.25rem' }}>
           New Student Admission Form
         </h5>
       </div>
-      <div className="card-body">
-        {successMessage && <div className="alert alert-success">{successMessage}</div>}
+      <div className="card-body p-4">
+        {successMessage && <div className="alert alert-success fw-bold">{successMessage}</div>}
         {serverError && <div className="alert alert-danger fw-bold">{serverError}</div>}
 
         <form onSubmit={handleSubmit} noValidate>
@@ -140,12 +152,13 @@ export function AdmissionForm({ onApplicationCreated }) {
             <input
               type="text"
               name="full_name"
-              className={`form-control ${errors.full_name ? 'is-invalid border-danger' : ''}`}
+              className={`form-control form-control-lg ${errors.full_name ? 'is-invalid border-danger border-2' : ''}`}
               value={formData.full_name}
               onChange={handleChange}
+              onBlur={handleBlur}
             />
             {errors.full_name && (
-              <div className="invalid-feedback d-block text-danger fw-bold mt-1" style={{ color: '#dc3545', fontWeight: '700' }}>
+              <div className="text-danger fw-bold mt-1" style={{ color: '#dc3545', fontWeight: '700', fontSize: '0.9rem' }}>
                 ⚠️ {errors.full_name}
               </div>
             )}
@@ -156,23 +169,24 @@ export function AdmissionForm({ onApplicationCreated }) {
             <input
               type="email"
               name="email"
-              className={`form-control ${errors.email ? 'is-invalid border-danger' : ''}`}
+              className={`form-control form-control-lg ${errors.email ? 'is-invalid border-danger border-2' : ''}`}
               value={formData.email}
               onChange={handleChange}
+              onBlur={handleBlur}
             />
             {errors.email && (
-              <div className="invalid-feedback d-block text-danger fw-bold mt-1" style={{ color: '#dc3545', fontWeight: '700' }}>
+              <div className="text-danger fw-bold mt-1" style={{ color: '#dc3545', fontWeight: '700', fontSize: '0.9rem' }}>
                 ⚠️ {errors.email}
               </div>
             )}
           </div>
 
-          <div className="row mb-3">
+          <div className="row mb-4">
             <div className="col-md-6">
               <label className="form-label text-dark fw-semibold">Degree Program *</label>
               <select
                 name="program"
-                className="form-select"
+                className="form-select form-select-lg"
                 value={formData.program}
                 onChange={handleChange}
               >
@@ -190,20 +204,55 @@ export function AdmissionForm({ onApplicationCreated }) {
                 type="number"
                 step="0.1"
                 name="gpa"
-                className={`form-control ${errors.gpa ? 'is-invalid border-danger' : ''}`}
+                className={`form-control form-control-lg ${errors.gpa ? 'is-invalid border-danger border-2' : ''}`}
                 value={formData.gpa}
                 onChange={handleChange}
+                onBlur={handleBlur}
               />
               {errors.gpa && (
-                <div className="invalid-feedback d-block text-danger fw-bold mt-1" style={{ color: '#dc3545', fontWeight: '700' }}>
+                <div className="text-danger fw-bold mt-1" style={{ color: '#dc3545', fontWeight: '700', fontSize: '0.9rem' }}>
                   ⚠️ {errors.gpa}
                 </div>
               )}
             </div>
           </div>
 
-          <button type="submit" className="btn btn-success w-100 fw-bold" disabled={isLoading}>
-            {isLoading ? 'Submitting Application...' : 'Submit Application'}
+          {/* Bold Green Pressable Action Button */}
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-100 text-white fw-bold py-3 text-uppercase border-0 shadow"
+            style={{
+              backgroundColor: isLoading ? '#6c757d' : '#198754',
+              fontSize: '1.1rem',
+              letterSpacing: '1px',
+              borderRadius: '10px',
+              boxShadow: isLoading ? 'none' : '0 6px 16px rgba(25, 135, 84, 0.4)',
+              cursor: isLoading ? 'not-allowed' : 'pointer',
+              transition: 'all 0.2s ease-in-out',
+              transform: 'scale(1)',
+            }}
+            onMouseDown={(e) => {
+              if (!isLoading) e.currentTarget.style.transform = 'scale(0.97)';
+            }}
+            onMouseUp={(e) => {
+              if (!isLoading) e.currentTarget.style.transform = 'scale(1)';
+            }}
+            onMouseEnter={(e) => {
+              if (!isLoading) {
+                e.currentTarget.style.backgroundColor = '#157347';
+                e.currentTarget.style.boxShadow = '0 8px 20px rgba(25, 135, 84, 0.5)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!isLoading) {
+                e.currentTarget.style.backgroundColor = '#198754';
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(25, 135, 84, 0.4)';
+                e.currentTarget.style.transform = 'scale(1)';
+              }
+            }}
+          >
+            {isLoading ? '⏳ Submitting Application...' : '🚀 Submit Application'}
           </button>
         </form>
       </div>
